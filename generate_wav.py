@@ -2,6 +2,9 @@ import numpy as np
 from scipy.io import wavfile
 import math
 import conf
+import warnings
+
+warnings.filterwarnings("ignore")
 
 SPEED_OF_SOUND = 343.0  # meters per second
 
@@ -55,6 +58,10 @@ def main():
             src_data = src["data"]
             current_length = src_data.shape[0]
 
+            # Add random noise to reduce correlation
+            noise = np.random.normal(0, 0.02, output.shape).astype(np.float32)
+            src_data += noise
+
             # Pad the source data to global_max_length
             if current_length < global_max_length:
                 pad_width = global_max_length - current_length
@@ -91,6 +98,8 @@ def main():
 
         # Save as 32-bit float WAV
         wavfile.write(mic["filename"], sample_rate, output)
+
+    print(f"Generated {len(conf.SOURCES)} source(s) for {len(conf.MICROPHONES)} microphones")
 
 
 if __name__ == "__main__":

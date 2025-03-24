@@ -6,11 +6,13 @@ import scipy
 from scipy.io import wavfile
 from conf import MICROPHONES, SOURCES
 
+frec = 416
+
 
 # Functions
 def array_response_vector(array, theta):
     N = array.shape
-    v = np.exp(1j * 2 * np.pi * array * np.sin(theta) / (343 / 400))
+    v = np.exp(1j * 2 * np.pi * array * np.sin(theta) / (343 / frec))
     # v = np.exp(1j * 2 * np.pi * array * np.sin(theta) / (343 / 696))
     return v / np.sqrt(N)
 
@@ -26,7 +28,7 @@ def music(CovMat, L, N, array, Angles):
     for i in range(numAngles):
         av = array_response_vector(array, Angles[i])
         pspectrum[i] = 1 / LA.norm((Qn.conj().transpose() @ av))
-    psindB = np.log10(10 * pspectrum / pspectrum.min())
+    psindB = 10 * np.log10(pspectrum / pspectrum.min())
     DoAsMUSIC, _ = ss.find_peaks(psindB)
 
     # If we didn't find exactly L peaks, take the L highest peaks
@@ -48,7 +50,7 @@ def esprit(CovMat, L, N, d):
     )  # the original array is divided into two subarrays [0,1,...,N-2] and [1,2,...,N-1]
     eigs, _ = LA.eig(Phi)
     # DoAsESPRIT = np.arcsin(np.angle(eigs) / np.pi)
-    DoAsESPRIT = np.arcsin(np.angle(eigs) / (2 * np.pi * (400 / 343) * d))
+    DoAsESPRIT = np.arcsin(np.clip(np.angle(eigs) / (2 * np.pi * (frec / 343) * d), -1, 1))
     return DoAsESPRIT
 
 
@@ -67,7 +69,6 @@ np.random.seed(6)
 
 L = len(SOURCES)  # number of sources
 N = len(MICROPHONES)  # number of ULA elements
-snr = 10  # signal to noise ratio
 
 
 array = np.array([x["position"][0] for x in MICROPHONES])
@@ -78,7 +79,7 @@ plt.subplot(221)
 plt.plot(array, np.zeros(N), "^")
 plt.plot(np.array([x["position"][0] for x in SOURCES]), np.array([x["position"][1] for x in SOURCES]), "*")
 plt.title("Uniform Linear Array")
-plt.legend(["Antenna", "Source"])
+plt.legend(["Microphone", "Source"])
 plt.axis("scaled")
 
 # Read WAV files and create data matrix
