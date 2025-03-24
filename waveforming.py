@@ -1,7 +1,11 @@
 import numpy as np
 from scipy.io import wavfile
+import scipy.signal as ss
 import matplotlib.pyplot as plt
 from conf import MICROPHONES, SOURCES
+
+
+L = len(SOURCES)
 
 # Read all microphone files
 fs = None
@@ -46,8 +50,14 @@ for i, theta in enumerate(angles):
     summed_signal = np.sum(shifted_signals, axis=0)
     power[i] = np.sum(summed_signal**2)
 
-max_index = np.argmax(power)
-estimated_angle = angles[max_index]
+peaks, _ = ss.find_peaks(power, width=5)
+
+# If we didn't find exactly L peaks, take the L highest peaks
+if len(peaks) != L:
+    # Sort peaks by height and take the L highest
+    peak_heights = power[peaks]
+    idx = np.argsort(peak_heights)[::-1]  # Sort in descending order
+    peaks = peaks[idx[:L]]  # Take the L highest peaks
 
 center_x = np.mean([m["position"][0] for m in MICROPHONES])
 real_doas = []
@@ -62,12 +72,14 @@ for source in SOURCES:
     real_doas.append(angle_deg)
 real_doas_sorted = np.sort(real_doas)
 
-print(f"Estimated DOA angle: {estimated_angle} degrees")
+print(f"Estimated DOA angle: {angles[peaks]} degrees")
 print(f"Real DOAs: {real_doas_sorted} degrees")
 
 plt.figure(figsize=(10, 6))
 plt.plot(angles, power)
-plt.axvline(x=real_doas_sorted[0], color="r", linestyle="--", label=f"First Real DOA: {real_doas_sorted[0]:.2f}°")
+plt.plot(angles[peaks], power[peaks], "x")
+for ang in real_doas_sorted:
+    plt.axvline(x=ang, color="r", linestyle="--", label=f"First Real DOA: {ang:.2f}°")
 plt.xlabel("Angle (degrees)")
 plt.ylabel("Power")
 plt.title("DOA Estimation using Delay-and-Sum Beamforming")
