@@ -44,10 +44,18 @@ def music(CovMat, L, N, array, Angles):
 
 def esprit(CovMat, L, N, d):
     # CovMat is the signal covariance matrix, L is the number of sources, N is the number of antennas
-    _, U = LA.eig(CovMat)
+    eigv, U = LA.eig(CovMat)
+
+    # Sort eigv
+    idx = np.argsort(np.abs(eigv))[::-1]
+    U = U[:, idx]
+
     S = U[:, 0:L]
     # the original array is divided into two subarrays [0,1,...,N-2] and [1,2,...,N-1]
-    Phi = LA.pinv(S[0 : N - 1]) @ S[1:N]
+    W1 = S[0 : N - 1]
+    W2 = S[1:N]
+    Phi = LA.pinv(W1) @ W2
+    # Phi = LA.inv(W1.T @ W1) @ W1.T @ W2
     eigs, _ = LA.eig(Phi)
     # DoAsESPRIT = np.arcsin(np.angle(eigs) / np.pi)
     sine = np.angle(eigs) / (2 * np.pi * (frec / c) * d)

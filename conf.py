@@ -1,7 +1,7 @@
 SOURCES = [
-    {"position": (-4.0, 3.0), "filename": "wav/5-181977-A-35.wav"},
-    # {"position": (0.75, 6.0), "filename": "wav/392.wav"},
-    # {"position": (3.5, 2.0), "filename": "wav/440.wav"},
+    {"position": (-4.0, 3.0), "filename": "wav/440.wav"},
+    {"position": (0.75, 6.0), "filename": "wav/392.wav"},
+    {"position": (3.5, 2.0), "filename": "wav/440.wav"},
 ]
 
 c = 343
