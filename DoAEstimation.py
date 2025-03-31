@@ -6,7 +6,7 @@ import scipy
 from scipy.io import wavfile
 from conf import MICROPHONES, SOURCES
 
-frec = 416
+frec = 350
 c = 343
 
 
@@ -22,7 +22,9 @@ def music(CovMat, L, N, array, Angles):
     # CovMat is the signal covariance matrix, L is the number of sources, N is the number of antennas
     # array holds the positions of antenna elements
     # Angles are the grid of directions in the azimuth angular domain
-    _, V = LA.eig(CovMat)
+    eigv, V = LA.eig(CovMat)
+    sorted_indices = eigv.argsort()[::-1]
+    V = V[:, sorted_indices]
     Qn = V[:, L:N]
     numAngles = Angles.size
     pspectrum = np.zeros(numAngles)
@@ -180,8 +182,19 @@ plt.title("ESPRIT")
 plt.xlim(-90, 90)
 plt.legend(["Actual DoAs", "Estimated DoAs"])
 
-print("Actual DoAs:", np.sort(np.rad2deg(Thetas)), "\n")
-print("MUSIC DoAs:", np.sort(np.rad2deg(Angles[DoAsMUSIC])), "\n")
-print("ESPRIT DoAs:", np.sort(np.rad2deg(DoAsESPRIT)), "\n")
+actual = np.sort(np.rad2deg(Thetas))
+esprit_angles = np.sort(np.rad2deg(DoAsESPRIT))
+music_angles = np.sort(np.rad2deg(Angles[DoAsMUSIC]))
+print("Actual DoAs:", actual, "\n")
+print("MUSIC DoAs:", music_angles)
+print("ESPRIT DoAs:", esprit_angles, "\n")
+try:
+    print("MUSIC diff:", np.abs(actual - music_angles))
+except:
+    pass
+try:
+    print("ESPRIT diff:", np.abs(actual - esprit_angles))
+except:
+    pass
 
 plt.show()
