@@ -59,7 +59,7 @@ def main():
             current_length = src_data.shape[0]
 
             # Add random noise to reduce correlation
-            noise = np.random.normal(0, 0.02, output.shape).astype(np.float32)
+            noise = np.random.normal(0, 0.00001, output.shape).astype(np.float32)
             src_data += noise
 
             # Pad the source data to global_max_length

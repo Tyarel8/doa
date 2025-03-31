@@ -7,12 +7,13 @@ from scipy.io import wavfile
 from conf import MICROPHONES, SOURCES
 
 frec = 416
+c = 343
 
 
 # Functions
 def array_response_vector(array, theta):
     N = array.shape
-    v = np.exp(1j * 2 * np.pi * array * np.sin(theta) / (343 / frec))
+    v = np.exp(1j * 2 * np.pi * array * np.sin(theta) / (c / frec))
     # v = np.exp(1j * 2 * np.pi * array * np.sin(theta) / (343 / 696))
     return v / np.sqrt(N)
 
@@ -45,12 +46,14 @@ def esprit(CovMat, L, N, d):
     # CovMat is the signal covariance matrix, L is the number of sources, N is the number of antennas
     _, U = LA.eig(CovMat)
     S = U[:, 0:L]
-    Phi = (
-        LA.pinv(S[0 : N - 1]) @ S[1:N]
-    )  # the original array is divided into two subarrays [0,1,...,N-2] and [1,2,...,N-1]
+    # the original array is divided into two subarrays [0,1,...,N-2] and [1,2,...,N-1]
+    Phi = LA.pinv(S[0 : N - 1]) @ S[1:N]
     eigs, _ = LA.eig(Phi)
     # DoAsESPRIT = np.arcsin(np.angle(eigs) / np.pi)
-    DoAsESPRIT = np.arcsin(np.clip(np.angle(eigs) / (2 * np.pi * (frec / 343) * d), -1, 1))
+    sine = np.angle(eigs) / (2 * np.pi * (frec / c) * d)
+    # print(sine)
+    # print(sine - np.trunc(sine))
+    DoAsESPRIT = np.arcsin(sine - np.trunc(sine))
     return DoAsESPRIT
 
 
@@ -64,8 +67,6 @@ def compute_theta(x, y, center_x):
     sin_theta = dx / distance
     return np.arcsin(sin_theta)
 
-
-np.random.seed(6)
 
 L = len(SOURCES)  # number of sources
 N = len(MICROPHONES)  # number of ULA elements
