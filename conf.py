@@ -2,6 +2,9 @@ SOURCES = [
     {"position": (-4.0, 3.0), "filename": "wav/5-181977-A-35 Lavadora.wav"},
     {"position": (0.75, 6.0), "filename": "wav/1-196660-A-8 Ovejas.wav"},
     {"position": (3.5, 2.0), "filename": "wav/1-155858-A-25 Pasos.wav"},
+    # {"position": (-4.0, 3.0), "filename": "wav/392.wav"},
+    # {"position": (0.75, 6.0), "filename": "wav/440.wav"},
+    # {"position": (3.5, 2.0), "filename": "wav/440.wav"},
 ]
 
 c = 343

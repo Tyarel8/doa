@@ -68,6 +68,43 @@ def esprit(CovMat, L, N, d):
 
 
 # =============================================================
+def aic(R, N):
+    M = R.shape[0]
+    eigvals = LA.eigvalsh(R)  # Use eigvalsh for Hermitian matrices
+    eigvals = np.flip(np.sort(np.real(eigvals)))  # Sort in descending order
+
+    aic_vals = []
+
+    for k in range(M):
+        if k == M:
+            aic_vals.append(np.inf)
+            continue
+
+        noise_eigvals = eigvals[k:]
+        m_k = M - k
+
+        # Avoid log(0) or division by 0
+        if m_k == 0 or np.any(noise_eigvals <= 0):
+            aic_vals.append(np.inf)
+            continue
+
+        # Arithmetic Mean (A_k)
+        A_k = np.mean(noise_eigvals)
+
+        # Geometric Mean (G_k)
+        G_k = np.exp(np.mean(np.log(noise_eigvals)))
+
+        # AIC(k)
+        if G_k == 0 or A_k == 0:
+            aic = np.inf
+        else:
+            aic = -2 * (N - k) * m_k * np.log(G_k / A_k) + 2 * k * (2 * M - k)
+
+        aic_vals.append(aic)
+
+    k_opt = np.argmin(aic_vals)
+    # print(aic_vals)
+    return k_opt
 
 
 def compute_theta(x, y, center_x):
@@ -80,7 +117,6 @@ def compute_theta(x, y, center_x):
 
 L = len(SOURCES)  # number of sources
 N = len(MICROPHONES)  # number of ULA elements
-
 
 array = np.array([x["position"][0] for x in MICROPHONES])
 d = array[1]
@@ -111,6 +147,7 @@ data_matrix = np.array([scipy.signal.hilbert(sig) for sig in mic_signals])
 
 # Compute covariance matrix
 CovMat = (data_matrix @ data_matrix.conj().T) / T
+print("Sources: ", aic(CovMat, 10))
 
 center_x = np.mean([m["position"][0] for m in MICROPHONES])
 Thetas = np.zeros(L)
