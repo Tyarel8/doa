@@ -68,10 +68,20 @@ def esprit(CovMat, L, N, d):
 
 
 # =============================================================
-def aic(R, N):
-    M = R.shape[0]
-    eigvals = LA.eigvalsh(R)  # Use eigvalsh for Hermitian matrices
+def estimate_sources(CovMat, n_snapshots):
+    M = CovMat.shape[0]
+    eigvals = LA.eigvalsh(CovMat)  # Use eigvalsh for Hermitian matrices
     eigvals = np.flip(np.sort(np.real(eigvals)))  # Sort in descending order
+    # plt.figure(figsize=(8, 6))
+    # plt.plot(eigvals, "or")
+    # plt.axhline(0, color="black", linewidth=0.5)
+    # plt.axvline(0, color="black", linewidth=0.5)
+    # plt.title("Eigenvalues on Complex Plane")
+    # plt.xlabel("Real part")
+    # plt.ylabel("Imaginary part")
+    # plt.grid(True)
+    # plt.show()
+    return np.sum(eigvals > 0.001)
 
     aic_vals = []
 
@@ -98,7 +108,7 @@ def aic(R, N):
         if G_k == 0 or A_k == 0:
             aic = np.inf
         else:
-            aic = -2 * (N - k) * m_k * np.log(G_k / A_k) + 2 * k * (2 * M - k)
+            aic = -2 * (n_snapshots - k) * m_k * np.log(G_k / A_k) + 2 * k * (2 * M - k)
 
         aic_vals.append(aic)
 
@@ -147,7 +157,7 @@ data_matrix = np.array([scipy.signal.hilbert(sig) for sig in mic_signals])
 
 # Compute covariance matrix
 CovMat = (data_matrix @ data_matrix.conj().T) / T
-print("Sources: ", aic(CovMat, 10))
+print("Sources: ", estimate_sources(CovMat, 10))
 
 center_x = np.mean([m["position"][0] for m in MICROPHONES])
 Thetas = np.zeros(L)
